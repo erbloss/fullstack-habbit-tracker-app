@@ -1,0 +1,27 @@
+
+
+<form action="/add" method="post">
+    <input type="text" name="habit" placeholder="New habit" required>
+    <input type="submit" value="Add Habit">
+</form>
+<h1>Welcome, {{ current_user.username }}</h1>
+<h2>Your Habits:</h2>
+<ul>
+    {% for habit in habits %}
+        <li>
+            {{ habit.name }} - 
+            {% if habit.completed %}
+                ✅ Completed
+            {% else %}
+                ❌ Not Done
+                <a href="{{ url_for('complete_habit', habit_id=habit.id) }}">Mark as Done</a>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>
+
+<form action="/reset" method="get">
+    <button type="submit">Reset for Tomorrow</button>
+</form>
+
+<a href="{{ url_for('logout') }}">Logout</a>

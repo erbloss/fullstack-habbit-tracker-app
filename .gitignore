@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+venv/
+.env
+
+# Flask
+instance/
+*.db
+
+# Node/React
+node_modules/
+build/
+dist/
+.env
+
+# VS Code settings
+.vscode/
