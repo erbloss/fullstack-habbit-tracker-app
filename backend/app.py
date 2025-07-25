@@ -50,6 +50,15 @@ def complete_habit(habit_id):
         db.session.commit()
     return jsonify({'message': 'Habit Marked as Complete'})
 
+@app.route('/api/habits/<int:habit_id>/undo', methods=['POST'])
+@login_required
+def undo_habit(habit_id):
+    habit = Habit.query.get_or_404(habit_id)
+    if habit.user_id == current_user.id:
+        habit.completed = False
+        db.session.commit()
+    return jsonify({'message': 'Habit marked as undone'})
+
 @app.route('/api/habits', methods=['GET'])
 @login_required
 def get_habits():
@@ -64,6 +73,27 @@ def reset_habits():
         h.completed = False
     db.session.commit()
     return jsonify({'message': 'Habits Reset'})
+
+@app.route('/api/habits/<int:habit_id>', methods=['DELETE'])
+@login_required
+def delete_habit(habit_id):
+    habit = Habit.query.get_or_404(habit_id)
+    
+    # Make sure the habit belongs to the current user
+    if habit.user_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    db.session.delete(habit)
+    db.session.commit()
+    return jsonify({'message': 'Habit deleted successfully'})
+
+@app.route('/api/habits/clear', methods=['POST'])
+@login_required
+def clear_habits():
+    Habit.query.filter_by(user_id=current_user.id).delete()
+    db.session.commit()
+    return jsonify({'message': 'All habits cleared'})
+
 
 # ----------------------------------------------------------
 # LOGGING IN AND OUT

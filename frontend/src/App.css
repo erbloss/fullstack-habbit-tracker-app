@@ -2,6 +2,77 @@
   text-align: center;
 }
 
+.box {
+  margin: 50px;
+  background-color: rgba(215, 225, 242, 0.938);
+}
+
+.small-text {
+  font-size: 11px;
+}
+
+.button-group{
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding-top: 20px;
+  padding-bottom: 15px;
+}
+
+.habit_grid {
+  display: grid;
+  grid-template-columns: 1fr 100px 150px 150px;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 10px;
+  justify-items: center;
+}
+
+.grid-header {
+  font-weight: bold;
+  text-align: center;
+  color: rgb(92, 124, 204);
+  padding-bottom: 8px;
+}
+
+.congrats-msg {
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: rgb(92, 124, 204);
+  margin-top: 20px;
+}
+
+h2 {
+  text-align: center;
+  color: rgb(92, 124, 204);
+  text-shadow: 
+    -1px -1px #282c34,
+    -1px -1px #282c34,
+    -1px -1px #282c34,
+    -1px -1px #282c34;
+  padding-top: 10px;
+}
+
+p {
+  margin-left: 30px;
+}
+input {
+  margin-inline-start: 30px;
+}
+
+button {
+  margin-inline: 5px;
+  background-color: #eeeef0;
+  border-width: 1px;
+  width: 100px;
+  height: 20px;
+  font-size: 12px;
+  border-radius: 7px;
+  
+}
+
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;
