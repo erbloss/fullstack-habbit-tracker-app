@@ -13,9 +13,11 @@ function HamburgerMenu() {
 
             {open && (
                 <div className={`menu-dropdown ${open ? 'open' : 'closed'}`}>
-                    <Link to="/" onClick={() => setOpen(false)}>Dashboard</Link>
-                    <Link to="/login" onClick={() => setOpen(false)}>Login</Link>
-                    <Link to="/register" onClick={() => setOpen(false)}>Register</Link>
+                    <Link to="/" onClick={() => setOpen(false)}>My Habits</Link>
+                    <Link to="/history" onClick={() => setOpen(false)}>My Progress</Link>
+                    <Link to="/register" onClick={() => setOpen(false)}>Sign Up</Link>
+                    <Link to="/login" onClick={() => setOpen(false)}>Sign in</Link>
+                    <Link to="/logout" onClick={() => setOpen(false)}>Sign Out</Link>
                 </div>
             )}
         </div>

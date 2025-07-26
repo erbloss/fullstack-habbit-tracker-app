@@ -21,11 +21,11 @@ function Login() {
         <div className="box">
             <HamburgerMenu />
             <br />
-            <h2>Login</h2>
+            <h2>Sign In</h2>
             <input placeholder="Username" value={username} onChange={e => setUserName(e.target.value)} /><br />
             <input placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} /><br /><br />
-            <button className="main-button" onClick={login}>Login</button>
-            <ul>New user? Please click <Link to="/register"> here</Link> to register as a new user.</ul>
+            <button className="main-button" onClick={login}>Sign In</button>
+            <p>New user? Please click <Link to="/register"> here</Link> to register as a new user.</p>
             <br />
         </div>
     );

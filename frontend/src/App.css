@@ -1,3 +1,10 @@
+body {
+  background-color: #b3cae1;
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+
 .App {
   text-align: center;
 }
@@ -5,34 +12,50 @@
 .box {
   margin: 50px;
   background-color: rgba(215, 225, 242, 0.938);
+  border-radius: 10px;
 }
 
 .small-text {
   font-size: 11px;
 }
 
-.button-group {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  padding-top: 20px;
-  padding-bottom: 15px;
-}
-
-.main-button {
-  position: absolute;
-  width: 200px;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.habit_grid {
+.habit-grid {
   display: grid;
-  grid-template-columns: 1fr 100px 150px 150px;
+  grid-template-columns: 1fr 100px 150px 75px;
   gap: 10px;
   margin-top: 20px;
   padding: 10px;
   justify-items: center;
+  text-transform: uppercase;
+}
+
+.habit-name {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  text-align: left;
+  position: relative;
+  cursor: pointer;
+}
+
+.habit-name:hover::after {
+  content: attr(data-fulltext);
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  padding: 4px 8px;
+  white-space: normal;
+  z-index: 100;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  max-width: 200px;
+  text-align: center;
+  pointer-events: none;
 }
 
 .grid-header {
@@ -53,11 +76,6 @@
 h2 {
   text-align: center;
   color: rgb(92, 124, 204);
-  text-shadow: 
-    -1px -1px #282c34,
-    -1px -1px #282c34,
-    -1px -1px #282c34,
-    -1px -1px #282c34;
 }
 
 h3 {
@@ -67,17 +85,23 @@ h3 {
 }
 
 h4 {
-  padding-left: 10px;
+  padding-right: 5px;
+  padding-top: 5px;
   font-size: 12px;
   text-align: right;
+  font-weight: 300;
 }
 
 p {
   margin-left: 30px;
 }
+
 input {
+  border-radius: 8px;
+  border-width: 1px;
   margin-inline-start: 30px;
   margin-bottom: 5px;
+  width: 200px;
 }
 
 button {
@@ -87,20 +111,50 @@ button {
   width: 100px;
   height: 20px;
   font-size: 12px;
-  border-radius: 7px;
-  
+  border-radius: 7px;  
+  background-color: rgb(104, 132, 184);
+  color: GreenYellow;
+  text-transform: uppercase;
+  cursor: pointer; 
+}
+
+.trash-button {
+  background: none;         
+  border: none;             
+  padding: 0;               
+  margin: 0;
+  cursor: pointer;          
+  font-size: 1.2rem;        
+  color: #d9534f;           
+  transition: color 0.2s ease;
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding-top: 20px;
+  padding-bottom: 15px;
+}
+
+.button-group button {
+  width: 200px;
+  height: 30px;
+  font-size: 14px;
+
+}
+
+.main-button {
+  position: absolute;
+  width: 200px;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 
 .App-logo {
   height: 40vmin;
   pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
 }
 
 .App-header {
@@ -116,13 +170,4 @@ button {
 
 .App-link {
   color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }

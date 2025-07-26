@@ -39,23 +39,26 @@ function Dashboard() {
         }
     };
 
+    // add a new habit
     const addHabit = async () => {
         await axios.post('http://localhost:5000/api/habits', { name: newHabit }, { withCredentials: true});
         setNewHabit('');
         fetchHabits();
     };
 
+    // mark habit as done
     const markDone = async (id) => {
         await axios.post(`http://localhost:5000/api/habits/${id}/complete`, {}, { withCredentials: true });
         fetchHabits();
     };
 
+    // mark habit as not done
     const markUndone = async (id) => {
         await axios.post(`http://localhost:5000/api/habits/${id}/undo`, {}, { withCredentials: true });
         fetchHabits();
     };
 
-
+    // remove a single specific habit
     const deleteHabit = async (id) => {
         const confirmDelete = window.confirm("Are you sure you want to delete this habit?");
         if (!confirmDelete) return;
@@ -68,16 +71,17 @@ function Dashboard() {
         }
     };
 
-
+    // undo complete status of all habits
     const resetHabits = async () => {
         await axios.post(`http://localhost:5000/api/habits/reset`, {}, { withCredentials: true });
         fetchHabits();
     };
 
+    // remove all habits from list
     const clearHabits = async () => {
         const confirmDelete = window.confirm("Are you sure you want to clear all habits?");
-        if (!confirmDelete) return;
-
+        if (!confirmDelete) 
+            return;
         try {
             await axios.post(`http://localhost:5000/api/habits/reset`, {}, { withCredentials: true });
             setHabits([]);
@@ -86,24 +90,19 @@ function Dashboard() {
         }
     };
 
-    const logout = async () => {
-        await axios.post('http://localhost:5000/api/logout', {}, { withCredentials: true });
-        window.location.href = '/login';
-    };
-
     return (
         <div className="box">
             <HamburgerMenu />
             <h4>{currentDateTime.toLocaleString()}</h4>
             <h3>Welcome, {first_name}!</h3>
-            <h2>Your Daily Habits</h2>
-            <p>Add your daily habit that you would like to track using the input field below.</p>
+            <h2>📋 Your Daily Habits 📋</h2>
+            <p>Add any daily habit that you would like to track using the input field below:</p>
 
             <input value={newHabit} onChange={e => setNewHabit(e.target.value)} placeholder="New Habit" />
             <button onClick={addHabit}>Add</button>
             <p className="small-text">(e.g., "Exercise", "Drink 10 cups of water", "Read for 30 min")</p>
 
-            <div className="habit_grid">
+            <div className="habit-grid">
                 <div className="grid-header">Habit</div>
                 <div className="grid-header">Status</div>
                 <div className="grid-header">Action</div>
@@ -111,15 +110,20 @@ function Dashboard() {
 
                 {habits.map(habit => (
                     <React.Fragment key={habit.id}>
-                        <div>{habit.name}</div>
-                        <div>{habit.completed ? '✅' : '❌'}</div>
-                        <div>{habit.completed ? (
-                            <button onClick={() => markUndone(habit.id)}>Mark Undone</button>
+                        <div 
+                            className="habit-name"
+                            data-fulltext={habit.name}
+                            title={habit.name}>
+                                {habit.name}</div>
+                        <div >{habit.completed ? '✅' : '❌'}</div>
+                        <div >{habit.completed ? (
+                            <button onClick={() => markUndone(habit.id)}>Unheck</button>
                             ) : (
-                            <button onClick={() => markDone(habit.id)}>Mark Done</button>
+                            <button onClick={() => markDone(habit.id)}
+                            >Check</button>
                             )}
                         </div>
-                        <div><button onClick={() => deleteHabit(habit.id)} className="delete-button">🗑️</button>
+                        <div><button onClick={() => deleteHabit(habit.id)} className="trash-button">🗑️</button>
                         </div>
                     </React.Fragment>
                 ))}
@@ -133,7 +137,6 @@ function Dashboard() {
             <div className="button-group">
                 <button onClick={resetHabits}>Reset</button>
                 <button onClick={clearHabits}>Clear All</button>
-                <button onClick={logout}>Logout</button>
             </div>
         </div>
     );

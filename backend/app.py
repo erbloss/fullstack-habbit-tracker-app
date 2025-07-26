@@ -2,9 +2,9 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-
-from models import db, User, Habit
-
+from datetime import date
+from models import db, User, Habit, HabitLog
+from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import os
@@ -18,9 +18,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
-
 #--------------------------------------------------------------
 # LOGIN SETUP
+
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
@@ -34,6 +34,7 @@ def create_tables():
 
 #--------------------------------------------------------------
 # MANIPULATING HABITS
+
 @app.route('/api/habits', methods=['POST'])
 @login_required
 def add_habit():
@@ -43,6 +44,13 @@ def add_habit():
     db.session.commit()
     return jsonify({'message': 'Habbit Added'})
 
+@app.route('/api/habits', methods=['GET'])
+@login_required
+def get_habits():
+    habits = Habit.query.filter_by(user_id=current_user.id).all()
+    return jsonify([{'id': h.id, 'name': h.name, 'completed': h.completed} for h in habits])
+
+# mark habit as completed
 @app.route('/api/habits/<int:habit_id>/complete', methods=['POST'])
 @login_required
 def complete_habit(habit_id):
@@ -52,6 +60,7 @@ def complete_habit(habit_id):
         db.session.commit()
     return jsonify({'message': 'Habit Marked as Complete'})
 
+# change one specific habit from 'done' to 'undone'
 @app.route('/api/habits/<int:habit_id>/undo', methods=['POST'])
 @login_required
 def undo_habit(habit_id):
@@ -61,12 +70,7 @@ def undo_habit(habit_id):
         db.session.commit()
     return jsonify({'message': 'Habit marked as undone'})
 
-@app.route('/api/habits', methods=['GET'])
-@login_required
-def get_habits():
-    habits = Habit.query.filter_by(user_id=current_user.id).all()
-    return jsonify([{'id': h.id, 'name': h.name, 'completed': h.completed} for h in habits])
-
+# reset all habits marked as 'done' to 'undone'
 @app.route('/api/habits/reset', methods=['POST'])
 @login_required
 def reset_habits():
@@ -76,6 +80,7 @@ def reset_habits():
     db.session.commit()
     return jsonify({'message': 'Habits Reset'})
 
+# remove a specific habit on list
 @app.route('/api/habits/<int:habit_id>', methods=['DELETE'])
 @login_required
 def delete_habit(habit_id):
@@ -89,6 +94,7 @@ def delete_habit(habit_id):
     db.session.commit()
     return jsonify({'message': 'Habit deleted successfully'})
 
+# clear all habits from list
 @app.route('/api/habits/clear', methods=['POST'])
 @login_required
 def clear_habits():
@@ -96,9 +102,38 @@ def clear_habits():
     db.session.commit()
     return jsonify({'message': 'All habits cleared'})
 
+# generate log to track daily completeness data
+@app.route('/api/habits/<int:habit_id>log', methods=['POST'])
+def add_habit_log(habit_id):
+    data = request.get_json()
+    log_date = date.fromisoformat(data.get('date'))
+    status = data.get('status', True)
+
+    log = HabitLog.query.filter_by(habit_id=habit_id, date=log_date).first()
+    if log:
+        log.status = status #update existing instead of inserting
+    else:
+        log = HabitLog(habit_id=habit_id, date=log_date, status=status)
+        db.session.add(log)
+    
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({'error': 'Log already exists for that date'}), 400
+    
+    return jsonify({'message': 'Log saved'}), 200
+
+# get logs for a habit
+@app.route('/api/habits/<int:habit_id>/logs', methods=['GET'])
+def get_habit_logs(habit_id):
+    logs = HabitLog.query.filter_by(habit_id=habit_id).order_by(HabitLog.date).all()
+    return jsonify([{'date': log.date.isoformat(), 'status': log.status}
+                    for log in logs])
 
 # ----------------------------------------------------------
 # LOGGING IN AND OUT
+
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -139,7 +174,7 @@ def logout():
     logout_user()
     return jsonify({'message': 'Logged Out'})
 
-# getter for user info
+# get user info
 @app.route('/api/user/', methods=['GET'])
 @login_required
 def get_user():
@@ -150,6 +185,7 @@ def get_user():
 
 #--------------------------------------------------------
 # SERVE FRONTEND AND MAIN
+
 @app.route('/')
 def serve():
     return send_from_directory(app.static_folder, 'index.html')

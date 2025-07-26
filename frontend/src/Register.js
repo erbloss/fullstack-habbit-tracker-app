@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import HamburgerMenu from './HamburgerMenu';
+import { Link } from 'react-router-dom';
 
 function Register() {
     
@@ -47,7 +48,7 @@ function Register() {
         <div className="box">
             <HamburgerMenu />
             <br/>
-            <h2>Register Now</h2>
+            <h2>Create New Account</h2>
 
             <input
                 name="username"
@@ -79,6 +80,7 @@ function Register() {
             /><br /><br /><br/>
 
             <button className="main-button" onClick={register}>Register</button>
+            <p>Already have an account? <Link to="/login">Sign in</Link></p>
             <br/><br/>
         </div>
     );
