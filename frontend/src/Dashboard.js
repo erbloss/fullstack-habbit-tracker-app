@@ -1,14 +1,33 @@
 import React, { useEffect, useState } from 'react';
 import { Fragment } from 'react';
 import axios from 'axios';
+import HamburgerMenu from './HamburgerMenu';
 
 function Dashboard() {
     const [habits, setHabits] = useState([]);
     const [newHabit, setNewHabit] = useState('');
+    const [first_name, setFirstName] = useState('');
+    const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
     useEffect(() => {
         fetchHabits();
+        fetchFirstName();
+        const timer = setInterval(() => {
+            setCurrentDateTime(new Date());
+        }, 1000);
+
+        return () => clearInterval(timer); // cleanup
     }, []);
+
+    //get current username
+    const fetchFirstName = async () => {
+        try {
+            const res = await axios.get('http://localhost:5000/api/user', { withCredentials: true});
+            setFirstName(res.data.first_name);
+        } catch (err) {
+            console.error("Failed to getch user info:", err);
+        }
+    };
 
     //refresh the habits list
     const fetchHabits = async () => {
@@ -74,7 +93,11 @@ function Dashboard() {
 
     return (
         <div className="box">
-            <h2>Your Habits</h2>
+            <HamburgerMenu />
+            <h4>{currentDateTime.toLocaleString()}</h4>
+            <h3>Welcome, {first_name}!</h3>
+            <h2>Your Daily Habits</h2>
+            <p>Add your daily habit that you would like to track using the input field below.</p>
 
             <input value={newHabit} onChange={e => setNewHabit(e.target.value)} placeholder="New Habit" />
             <button onClick={addHabit}>Add</button>

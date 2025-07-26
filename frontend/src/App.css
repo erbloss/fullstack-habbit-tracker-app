@@ -11,12 +11,19 @@
   font-size: 11px;
 }
 
-.button-group{
+.button-group {
   display: flex;
   justify-content: center;
   gap: 10px;
   padding-top: 20px;
   padding-bottom: 15px;
+}
+
+.main-button {
+  position: absolute;
+  width: 200px;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .habit_grid {
@@ -51,7 +58,18 @@ h2 {
     -1px -1px #282c34,
     -1px -1px #282c34,
     -1px -1px #282c34;
-  padding-top: 10px;
+}
+
+h3 {
+  text-align: justify;
+  color: rgb(92, 124, 204);
+  padding-left:10px;
+}
+
+h4 {
+  padding-left: 10px;
+  font-size: 12px;
+  text-align: right;
 }
 
 p {
@@ -59,6 +77,7 @@ p {
 }
 input {
   margin-inline-start: 30px;
+  margin-bottom: 5px;
 }
 
 button {

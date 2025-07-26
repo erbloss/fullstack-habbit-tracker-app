@@ -8,14 +8,16 @@ from models import db, User, Habit
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import os
+import re
 
 app = Flask(__name__, static_folder='../frontend/build', static_url_path='/')
+CORS(app, origins=["http://localhost:3000"], supports_credentials=True)
 app.config['SECRET_KEY'] = 'supersecretkey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///habits.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
-CORS(app, supports_credentials=True)
+
 
 #--------------------------------------------------------------
 # LOGIN SETUP
@@ -111,11 +113,22 @@ def login():
 @app.route('/api/register', methods=['POST'])
 def register():
     data = request.get_json()
+    print("Received registration data:", data)  # <--- TESTING
+
     username = data.get('username')
-    password = generate_password_hash(data.get('password'))
+    password_plain = data.get('password')
+    first_name = data.get('first_name')
+    last_name = data.get('last_name')
+
+    if not username or not password_plain or not first_name or not last_name:
+        return jsonify({'error': 'Missing required fields'}), 400
+    if len(username) < 6 or not re.match("^[a-zA-Z0-9]+$", username):
+        return jsonify({'error': 'Username must be at least 6 characters and alphanumeric only.'}), 400
     if User.query.filter_by(username=username).first():
         return jsonify({'error': 'User already exists'}), 409
-    user = User(username=username, password=password)
+    
+    password = generate_password_hash(password_plain)
+    user = User(username=username, password=password, first_name=first_name, last_name=last_name)
     db.session.add(user)
     db.session.commit()
     return jsonify({'message': 'Registered Successfully'})
@@ -125,6 +138,15 @@ def register():
 def logout():
     logout_user()
     return jsonify({'message': 'Logged Out'})
+
+# getter for user info
+@app.route('/api/user/', methods=['GET'])
+@login_required
+def get_user():
+    return jsonify({ 'username': current_user.username,
+                    'first_name': current_user.first_name,
+                    'last_name': current_user.last_name,
+                    })
 
 #--------------------------------------------------------
 # SERVE FRONTEND AND MAIN
