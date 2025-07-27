@@ -1,5 +1,5 @@
 body {
-  background-color: #b3cae1;
+  background-color: white;
   margin: 0;
   padding: 0;
   font-family: sans-serif;
@@ -11,7 +11,7 @@ body {
 
 .box {
   margin: 50px;
-  background-color: rgba(215, 225, 242, 0.938);
+  background-color: rgba(226, 236, 254, 0.938);
   border-radius: 10px;
 }
 
@@ -21,7 +21,7 @@ body {
 
 .habit-grid {
   display: grid;
-  grid-template-columns: 1fr 100px 150px 75px;
+  grid-template-columns: 1fr 100px 75px 100px 75px;
   gap: 10px;
   margin-top: 20px;
   padding: 10px;
@@ -29,7 +29,7 @@ body {
   text-transform: uppercase;
 }
 
-.habit-name {
+.habit-text {
   font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
@@ -73,6 +73,15 @@ body {
   margin-top: 20px;
 }
 
+select {
+  border-radius: 8px;
+  border-width: 1px;
+  margin-inline-start: 10px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  width: 100px;
+}
+
 h2 {
   text-align: center;
   color: rgb(92, 124, 204);
@@ -112,7 +121,7 @@ button {
   height: 20px;
   font-size: 12px;
   border-radius: 7px;  
-  background-color: rgb(104, 132, 184);
+  background-color: rgba(8, 62, 161, 0.692);
   color: GreenYellow;
   text-transform: uppercase;
   cursor: pointer; 
@@ -124,8 +133,7 @@ button {
   padding: 0;               
   margin: 0;
   cursor: pointer;          
-  font-size: 1.2rem;        
-  color: #d9534f;           
+  font-size: 1.2rem;         
   transition: color 0.2s ease;
 }
 

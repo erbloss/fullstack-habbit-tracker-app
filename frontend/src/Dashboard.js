@@ -6,6 +6,9 @@ import HamburgerMenu from './HamburgerMenu';
 function Dashboard() {
     const [habits, setHabits] = useState([]);
     const [newHabit, setNewHabit] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const categories = ["Fitness", "Wellness", "Work", "Household", "Relationship", "Other"];
+
     const [first_name, setFirstName] = useState('');
     const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
@@ -28,7 +31,7 @@ function Dashboard() {
             console.error("Failed to getch user info:", err);
         }
     };
-
+    // ********  HABITS ******************************************
     //refresh the habits list
     const fetchHabits = async () => {
         try{
@@ -41,7 +44,7 @@ function Dashboard() {
 
     // add a new habit
     const addHabit = async () => {
-        await axios.post('http://localhost:5000/api/habits', { name: newHabit }, { withCredentials: true});
+        await axios.post('http://localhost:5000/api/habits', { name: newHabit, category: selectedCategory}, { withCredentials: true});
         setNewHabit('');
         fetchHabits();
     };
@@ -90,6 +93,19 @@ function Dashboard() {
         }
     };
 
+    // update the habit category
+    const updateHabitCategory = async (id, newCategory) => {
+        try {
+            await axios.put(`http://localhost:5000/api/habits/${id}`,
+            { category: newCategory }, { withCredentials: true });
+            fetchHabits(); // Refresh the habits after update
+        } catch (err) {
+            console.error("Failed to update category:", err);
+        }
+    };
+
+
+    // ********** UI *****************************
     return (
         <div className="box">
             <HamburgerMenu />
@@ -99,11 +115,25 @@ function Dashboard() {
             <p>Add any daily habit that you would like to track using the input field below:</p>
 
             <input value={newHabit} onChange={e => setNewHabit(e.target.value)} placeholder="New Habit" />
+
+            <select
+                id="categories"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+>
+                <option value="" disabled>Select a category</option>
+                {categories.map((category, index) => (
+                    <option key={index} value={category}>
+                        {category}
+                </option>
+                ))}
+            </select>
             <button onClick={addHabit}>Add</button>
             <p className="small-text">(e.g., "Exercise", "Drink 10 cups of water", "Read for 30 min")</p>
 
             <div className="habit-grid">
                 <div className="grid-header">Habit</div>
+                <div className="grid-header">Category</div>
                 <div className="grid-header">Status</div>
                 <div className="grid-header">Action</div>
                 <div className="grid-header">Delete</div>
@@ -111,10 +141,16 @@ function Dashboard() {
                 {habits.map(habit => (
                     <React.Fragment key={habit.id}>
                         <div 
-                            className="habit-name"
+                            className="habit-text"
                             data-fulltext={habit.name}
                             title={habit.name}>
                                 {habit.name}</div>
+                        <div 
+                            className="habit-text"
+                            data-fulltext={habit.category} 
+                            title={habit.category}>
+                                {habit.category}</div>
+
                         <div >{habit.completed ? '✅' : '❌'}</div>
                         <div >{habit.completed ? (
                             <button onClick={() => markUndone(habit.id)}>Unheck</button>

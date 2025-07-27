@@ -16,6 +16,7 @@ class Habit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     completed = db.Column(db.Boolean, default=False)
+    category = db.Column(db.String(100), nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     logs= db.relationship('HabitLog', backref='habit', lazy=True)
 

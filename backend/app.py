@@ -39,7 +39,7 @@ def create_tables():
 @login_required
 def add_habit():
     data = request.get_json()
-    habit = Habit(name=data.get('name'), user_id=current_user.id)
+    habit = Habit(name=data.get('name'), user_id=current_user.id, category=data.get('category'))
     db.session.add(habit)
     db.session.commit()
     return jsonify({'message': 'Habbit Added'})
@@ -48,7 +48,7 @@ def add_habit():
 @login_required
 def get_habits():
     habits = Habit.query.filter_by(user_id=current_user.id).all()
-    return jsonify([{'id': h.id, 'name': h.name, 'completed': h.completed} for h in habits])
+    return jsonify([{'id': h.id, 'name': h.name, 'completed': h.completed, 'category': h.category} for h in habits])
 
 # mark habit as completed
 @app.route('/api/habits/<int:habit_id>/complete', methods=['POST'])
