@@ -18,7 +18,7 @@
     python app.py
 
     new terminal:
-    cd fronend
+    cd frontend
     npm run build
     npm start
 
