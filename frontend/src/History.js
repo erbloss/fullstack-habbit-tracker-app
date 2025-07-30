@@ -8,6 +8,7 @@ import Dashboard from './Dashboard';
 
 function History() {
     const { habitId } = useParams();
+    const [habits, setHabits] = useState([]);
     const [logs, setLogs] = useState([]);
     const [first_name, setFirstName] = useState('');
     const [currentDateTime, setCurrentDateTime] = useState(new Date());
@@ -59,6 +60,38 @@ function History() {
         }],
     };
 
+    // fetch streak for a single habit
+    const fetchStreak = async (habiId) => {
+        try{
+            const res = await axios.get('http://localhost:5000/api/habits/${habitId}/streak', { withCredentials: true});
+            return res.data.streak;
+        } catch (err) {
+            console.error(`Failed to fetch streak for habit ${habitId}:`, err);
+            return 0;
+        }
+    };
+
+    // load all habits and their respective streaks and sort in descending order
+    useEffect(() => {
+        const loadHabitStreaks = async () => {
+            try {
+                const res = await axios.get(`http://localhost:5000/api/habits`, { withCredentials: true});
+                const habitsData = res.data;
+                const habitsWithStreaks = await Promise.all(habitsData.map(async habit => {
+                    const streak = await fetchStreak(habit.id);
+                    return { ...habit, streak};
+                }));
+                // sort here
+                const sortedHabits = habitsWithStreaks.sort((a, b) => 
+                    b.streak - a.streak);
+                setHabits(sortedHabits);
+            } catch (err) {
+                console.error("Failed to fetch habits:", err);
+            }
+        };
+        loadHabitStreaks();
+    }, []);
+
     return (
         <div className="box">
             <HamburgerMenu />
@@ -67,8 +100,15 @@ function History() {
             <h2>🌱 Completeness History 🌱</h2>
             <p>Below is a graph of your progress.  Keep up the good work!</p>
             <Line data={chartData} />
+            <br /> <br /> <br />
+            <h2>🔥 Your Habit Hot Streaks 🔥</h2>
+            {habits.map(habit => (
+                <div key={habit.id} className="habit-streaks">
+                    <div><strong>{habit.name}</strong>
+                        .....Streak: {habit.streak ?? 0}</div>
+                </div>
+            ))}
         </div>
-
     );
 }
 

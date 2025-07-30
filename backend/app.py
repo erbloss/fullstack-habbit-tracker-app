@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from datetime import date
+from datetime import date, timedelta
 from models import db, User, Habit, HabitLog
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -50,10 +50,16 @@ def get_habits():
     habits = Habit.query.filter_by(user_id=current_user.id).all()
     return jsonify([{'id': h.id, 'name': h.name, 'completed': h.completed, 'category': h.category} for h in habits])
 
-# mark habit as completed
+# mark habit as completed/done
 @app.route('/api/habits/<int:habit_id>/complete', methods=['POST'])
 @login_required
 def complete_habit(habit_id):
+    today = date.today()
+    log = HabitLog.query.filter_by(habit_id=habit_id, date=today).first()
+    if not log:
+        log = HabitLog(habit_id=habit_id, date=today)
+    log.completed = True
+    db.session.add(log)
     habit = Habit.query.get_or_404(habit_id)
     if habit.user_id == current_user.id:
         habit.completed = True
@@ -130,6 +136,29 @@ def get_habit_logs(habit_id):
     logs = HabitLog.query.filter_by(habit_id=habit_id).order_by(HabitLog.date).all()
     return jsonify([{'date': log.date.isoformat(), 'status': log.status}
                     for log in logs])
+
+# ----------------------------------------------------------
+#  HABIT STREAKS
+def calculate_streak(habit_id):
+    logs = (
+        HabitLog.query.filter_by(habit_id=habit_id, completed=True).order_by(HabitLog.date.desc()).all()
+    )
+    streak = 0
+    today = date.today()
+
+    for i, log in enumerate(logs):
+        expected_date = today - timedelta(days=i)
+        if log.date == expected_date:
+            streak += 1
+        else:
+            break
+    return streak
+
+@app.route('/api/habits/<int:habit_id>/streak', methods=['GET'])
+@login_required
+def get_streak(habit_id):
+    streak = calculate_streak(habit_id)
+    return jsonify({"streak": streak})
 
 # ----------------------------------------------------------
 # LOGGING IN AND OUT

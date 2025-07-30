@@ -40,6 +40,13 @@ body {
   cursor: pointer;
 }
 
+.habit-streaks {
+  font-size: 13px;
+  text-align: center;
+  position:relative;
+  
+}
+
 .habit-name:hover::after {
   content: attr(data-fulltext);
   position: absolute;
