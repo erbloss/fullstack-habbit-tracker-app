@@ -101,13 +101,19 @@ function History() {
             <p>Below is a graph of your progress.  Keep up the good work!</p>
             <Line data={chartData} />
             <br /> <br /> <br />
-            <h2>🔥 Your Habit Hot Streaks 🔥</h2>
-            {habits.map(habit => (
-                <div key={habit.id} className="habit-streaks">
+            <div className="habit-streak-box">
+                <h2>🔥 Your Habit Hot Streaks 🔥</h2>
+                {habits.map(habit => (
+                    <div key={habit.id} className="habit-streaks">
                     <div><strong>{habit.name}</strong>
-                        .....Streak: {habit.streak ?? 0}</div>
-                </div>
-            ))}
+                        ...............Streak: {habit.streak ?? 0}</div>
+                    </div>
+                ))}
+            </div>
+            <div>
+                <h2>Your Longest Streak to Date</h2>
+                
+            </div>
         </div>
     );
 }

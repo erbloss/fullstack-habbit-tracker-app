@@ -8,6 +8,7 @@ function Dashboard() {
     const [newHabit, setNewHabit] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
     const categories = ["Fitness", "Wellness", "Work", "Household", "Relationship", "Other"];
+    const toggle = document.getElementById('toggle');
 
     const [first_name, setFirstName] = useState('');
     const [currentDateTime, setCurrentDateTime] = useState(new Date());
@@ -31,6 +32,7 @@ function Dashboard() {
             console.error("Failed to getch user info:", err);
         }
     };
+
     // ********  HABITS ******************************************
     //refresh the habits list
     const fetchHabits = async () => {
@@ -114,14 +116,14 @@ function Dashboard() {
             <h2>📋 Your Daily Habits 📋</h2>
             <p>Add any daily habit that you would like to track using the input field below:</p>
 
-            <input value={newHabit} onChange={e => setNewHabit(e.target.value)} placeholder="New Habit" />
+            <input value={newHabit} onChange={e => setNewHabit(e.target.value)} placeholder=" New Habit" />
 
             <select
                 id="categories"
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
 >
-                <option value="" disabled>Select a category</option>
+                <option value="" disabled>Category</option>
                 {categories.map((category, index) => (
                     <option key={index} value={category}>
                         {category}
@@ -135,7 +137,6 @@ function Dashboard() {
                 <div className="grid-header">Habit</div>
                 <div className="grid-header">Category</div>
                 <div className="grid-header">Status</div>
-                <div className="grid-header">Action</div>
                 <div className="grid-header">Delete</div>
 
                 {habits.map(habit => (
@@ -145,22 +146,23 @@ function Dashboard() {
                             data-fulltext={habit.name}
                             title={habit.name}>
                                 {habit.name}</div>
+
                         <div 
                             className="habit-text"
                             data-fulltext={habit.category} 
                             title={habit.category}>
                                 {habit.category}</div>
 
-                        <div >{habit.completed ? '✅' : '❌'}</div>
-                        <div >{habit.completed ? (
-                            <button onClick={() => markUndone(habit.id)}>Unheck</button>
-                            ) : (
-                            <button onClick={() => markDone(habit.id)}
-                            >Check</button>
-                            )}
-                        </div>
-                        <div><button onClick={() => deleteHabit(habit.id)} className="trash-button">🗑️</button>
-                        </div>
+                        <div className="toggle-switch" >
+                            <input 
+                                type="checkbox" 
+                                id={`toggle-${habit.id}`}
+                                checked={habit.completed} 
+                                onChange={(e) => e.target.checked ? markDone(habit.id) : markUndone(habit.id)} />
+                            <label htmlFor={`toggle-${habit.id}`}></label></div>
+
+                        <div><button onClick={() => deleteHabit(habit.id)} className="trash-button">🗑️</button></div>  
+
                     </React.Fragment>
                 ))}
 

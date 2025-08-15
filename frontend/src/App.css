@@ -5,6 +5,28 @@ body {
   font-family: sans-serif;
 }
 
+h2 {
+  text-align: center;
+  color: rgba(92, 124, 204, 0.804);
+}
+
+h3 {
+  text-align: justify;
+  color: rgba(92, 124, 204, 0.728);
+  padding-left:10px;
+}
+
+h4 {
+  padding-right: 5px;
+  padding-top: 5px;
+  font-size: 12px;
+  text-align: right;
+  font-weight: 300;
+}
+
+p {
+  margin-left: 30px;
+}
 .App {
   text-align: center;
 }
@@ -21,30 +43,39 @@ body {
 
 .habit-grid {
   display: grid;
-  grid-template-columns: 1fr 100px 75px 100px 75px;
+  background-color:rgba(92, 124, 204, 0.315);
+  border-radius: 7px; 
+  grid-template-columns: 1fr 100px 100px 100px;
   gap: 10px;
   margin-top: 20px;
   padding: 10px;
   justify-items: center;
-  text-transform: uppercase;
+  text-transform:capitalize;
+  color: rgba(255, 255, 255, 0.973);
+  font-weight: bolder;
+}
+
+.habit-streak-box {
+   display: grid;
+  background-color:rgba(92, 124, 204, 0.315);
+  border-radius: 7px; 
+  gap: 10px;
+  margin-top: 20px;
+  padding: 10px;
+  justify-items: center;
+  text-transform:capitalize;
+  color: rgba(255, 255, 255, 0.973);
 }
 
 .habit-text {
-  font-size: 13px;
+  font-size: 15px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
-  text-align: left;
-  position: relative;
-  cursor: pointer;
-}
-
-.habit-streaks {
-  font-size: 13px;
-  text-align: center;
+  text-align:justify;
   position:relative;
-  
+  cursor: pointer;
 }
 
 .habit-name:hover::after {
@@ -66,9 +97,10 @@ body {
 }
 
 .grid-header {
+  font-size: 18px;
   font-weight: bold;
-  text-align: center;
-  color: rgb(92, 124, 204);
+  text-align: justify;
+  color: rgba(92, 124, 204, 0.792);
   padding-bottom: 8px;
 }
 
@@ -89,29 +121,6 @@ select {
   width: 100px;
 }
 
-h2 {
-  text-align: center;
-  color: rgb(92, 124, 204);
-}
-
-h3 {
-  text-align: justify;
-  color: rgb(92, 124, 204);
-  padding-left:10px;
-}
-
-h4 {
-  padding-right: 5px;
-  padding-top: 5px;
-  font-size: 12px;
-  text-align: right;
-  font-weight: 300;
-}
-
-p {
-  margin-left: 30px;
-}
-
 input {
   border-radius: 8px;
   border-width: 1px;
@@ -125,11 +134,10 @@ button {
   background-color: #eeeef0;
   border-width: 1px;
   width: 100px;
-  height: 20px;
   font-size: 12px;
   border-radius: 7px;  
-  background-color: rgba(8, 62, 161, 0.692);
-  color: GreenYellow;
+  background-color: rgba(8, 62, 161, 0.502);
+  color: rgb(230, 230, 230);
   text-transform: uppercase;
   cursor: pointer; 
 }
@@ -185,4 +193,51 @@ button {
 
 .App-link {
   color: #61dafb;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 50px;
+  height: 25px;
+  display: inline-block;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-switch label {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(213, 32, 32, 0.553); /* OFF = red */
+  transition: 0.4s;
+  border-radius: 34px;
+}
+
+.toggle-switch label::before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+/* Toggle ON */
+.toggle-switch input:checked + label {
+  background-color: rgb(117, 185, 14);
+}
+
+/* Move the knob to the right when ON */
+.toggle-switch input:checked + label::before {
+  transform: translateX(24px);
 }
