@@ -12,19 +12,34 @@ function History() {
     const [logs, setLogs] = useState([]);
     const [first_name, setFirstName] = useState('');
     const [currentDateTime, setCurrentDateTime] = useState(new Date());
+    const [longestStreak, setLongestStreak] = useState(null);
+    const [selectedHabit, setSelectedHabit] = useState('');
 
-    // Fetch logs for this habit
+    // Fetch logs for a specific habit
     useEffect(() => {
         const fetchLogs = async () => {
             try {
-                const res = await axios.get(`/api/habits/${habitId}/logs`);
+                const res = await axios.get(`http://localhost:5000/api/habits/${selectedHabit}/logs`, {withCredentials: true});
                 setLogs(res.data);
             } catch (err) {
                 console.error("Failed to fetch logs:", err);
             }
         };
         fetchLogs();
-    }, [habitId]);
+    }, [selectedHabit]);
+
+    // Fetch logs for ALL habits
+    useEffect(() => {
+        const fetchAllLogs = async () => {
+            try {
+                const res = await axios.get(`http://localhost:5000/api/logs`, { withCredentials: true});
+                setLogs(res.data);
+            } catch (err) {
+                console.error("Failed to fetch logs:", err);
+            }
+        };
+        fetchAllLogs();
+    }, []);
 
     // Get current user first name and update clock
     useEffect(() => {
@@ -45,25 +60,59 @@ function History() {
         return () => clearInterval(timer); // cleanup
     }, []);
 
-    // Chart data
-    const dates = logs.map(log => log.date);
-    const values = logs.map(log => (log.status ? 1 : 0));
+    // process all logs to calculate daily percentages
+    const logsPercentageByDate = (logs, totalHabits) => {
+        const grouped = {};
+        logs.forEach(log => {
+            if(!grouped[log.date]) {
+                grouped[log.date] = { completed: 0, total: 0};
+            }
+            grouped[log.date].total += 1;
+            if(log.status) {
+                grouped[log.date].completed += 1;
+            }
+        });
+        const sortedDates = Object.keys(grouped).sort((a, b) => new Date(a) - new Date(b));
+        const percentages = sortedDates.map(date => ({
+            date,
+            percent: totalHabits > 0 ? (grouped[date].completed / totalHabits) * 100 : 0
+        }));
+        return percentages;
+    }
 
-    const chartData = {
+    // Chart data for all habits as percentage
+    const dailyPercentages = logsPercentageByDate(logs, habits.length);
+    const chartData_all = {
+        labels: dailyPercentages.map(item => item.date),
+        datasets:[{
+            label: '% Daily Habit Completion',
+            date: dailyPercentages.map(item => item.percent),
+            fill: false,
+            borderColor: 'white',
+            tension: 0.2,
+        }],
+    };
+
+
+    // Chart data for a single habit
+    const dates = logs.map(log => log.date);
+    const values = logs.map(log => (log.status ? 1 : 0 ));
+
+    const chartData_single = {
         labels: dates,
         datasets: [{
             label: 'Habit Completion',
             data: values,
             fill: false,
-            borderColor: 'GreenYellow',
+            borderColor: 'white',
             tension: 0.2,
         }],
     };
 
     // fetch streak for a single habit
-    const fetchStreak = async (habiId) => {
+    const fetchStreak = async (habitId) => {
         try{
-            const res = await axios.get('http://localhost:5000/api/habits/${habitId}/streak', { withCredentials: true});
+            const res = await axios.get(`http://localhost:5000/api/habits/${habitId}/streak`, { withCredentials: true});
             return res.data.streak;
         } catch (err) {
             console.error(`Failed to fetch streak for habit ${habitId}:`, err);
@@ -71,13 +120,14 @@ function History() {
         }
     };
 
-    // load all habits and their respective streaks and sort in descending order
+    // load all habits and their respective streaks
     useEffect(() => {
         const loadHabitStreaks = async () => {
             try {
                 const res = await axios.get(`http://localhost:5000/api/habits`, { withCredentials: true});
+
                 const habitsData = res.data;
-                const habitsWithStreaks = await Promise.all(habitsData.map(async habit => {
+                const habitsWithStreaks = await Promise.all(habitsData.map    (async habit => {
                     const streak = await fetchStreak(habit.id);
                     return { ...habit, streak};
                 }));
@@ -85,6 +135,9 @@ function History() {
                 const sortedHabits = habitsWithStreaks.sort((a, b) => 
                     b.streak - a.streak);
                 setHabits(sortedHabits);
+                // find the longest streak
+                const longest = sortedHabits.length > 0 ? sortedHabits[0] : null;
+                setLongestStreak(longest);
             } catch (err) {
                 console.error("Failed to fetch habits:", err);
             }
@@ -98,9 +151,35 @@ function History() {
             <h4>{currentDateTime.toLocaleString()}</h4>
             <h3>Track your progress, {first_name}!</h3>
             <h2>🌱 Completeness History 🌱</h2>
-            <p>Below is a graph of your progress.  Keep up the good work!</p>
-            <Line data={chartData} />
+
+            <p>Daily habit completion across ALL habits:</p>
+            {logs.length >0? (
+                <Line data={chartData_all} />
+            ) : (
+                <p>Loading chart data...</p>
+            )}
+
+            <p>Select a habit from the drop-down menu to view your progress chart.</p>
+            <select
+                id="habits"
+                value={selectedHabit}
+                onChange={(e) => setSelectedHabit(e.target.value)}
+>
+                <option value="" disabled>Habit</option>
+                {habits.map((habit) => (
+                    <option key={habit.id} value={habit.id}>
+                        {habit.name}
+                </option>
+                ))}
+            </select>
+            {selectedHabit && logs.length > 0 ? (
+                <Line data={chartData_single} />
+            ): (
+                <div></div>
+            )}
+
             <br /> <br /> <br />
+
             <div className="habit-streak-box">
                 <h2>🔥 Your Habit Hot Streaks 🔥</h2>
                 {habits.map(habit => (
@@ -110,9 +189,14 @@ function History() {
                     </div>
                 ))}
             </div>
-            <div>
-                <h2>Your Longest Streak to Date</h2>
-                
+
+            <div className="habit-streak-box">
+                <h2>🏆 Your Longest Streak to Date 🏆</h2>
+                {longestStreak && longestStreak > 0 ? (
+                    <div><strong>{longestStreak.name}</strong> for {longestStreak.streak} consecutive days</div>
+                ) : (
+                    <div><strong>No records yet.  Keep working!</strong></div>
+                )}
             </div>
         </div>
     );

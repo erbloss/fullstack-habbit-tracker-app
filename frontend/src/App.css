@@ -108,7 +108,7 @@ p {
   text-align: center;
   font-size: 18px;
   font-weight: bold;
-  color: rgb(92, 124, 204);
+  color: rgba(92, 124, 204, 0.685);
   margin-top: 20px;
 }
 
@@ -137,7 +137,7 @@ button {
   font-size: 12px;
   border-radius: 7px;  
   background-color: rgba(8, 62, 161, 0.502);
-  color: rgb(230, 230, 230);
+  color: rgb(255, 255, 255);
   text-transform: uppercase;
   cursor: pointer; 
 }

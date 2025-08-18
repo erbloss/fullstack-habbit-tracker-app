@@ -110,6 +110,7 @@ def clear_habits():
 
 # generate log to track daily completeness data
 @app.route('/api/habits/<int:habit_id>log', methods=['POST'])
+@login_required
 def add_habit_log(habit_id):
     data = request.get_json()
     log_date = date.fromisoformat(data.get('date'))
@@ -132,13 +133,30 @@ def add_habit_log(habit_id):
 
 # get logs for a habit
 @app.route('/api/habits/<int:habit_id>/logs', methods=['GET'])
+@login_required
 def get_habit_logs(habit_id):
     logs = HabitLog.query.filter_by(habit_id=habit_id).order_by(HabitLog.date).all()
-    return jsonify([{'date': log.date.isoformat(), 'status': log.status}
+    return jsonify([{'date': log.date.isoformat(), 
+                     'status': log.status}
                     for log in logs])
 
+# get logs for all habits
+@app.route('/api/habits/logs', methods=['GET'])
+@login_required
+def get_all_habit_logs():
+    user_habits = Habit.query.filter_by(user_id=current_user.id).all()
+    habit_ids = [habit.id for habit in user_habits]
+    logs = HabitLog.query.filter(HabitLog.habit_id.in_(habit_ids)).order_by(HabitLog.date.asc()).all()
+    logs_data = [
+        {'habit_id': log.habit_id,
+         'date': log.date.isoformat(),
+         'status': log.status}
+         for log in logs
+    ]
+    return jsonify(logs_data)
+   
 # ----------------------------------------------------------
-#  HABIT STREAKS
+#  HABIT STREAKS AND COMPLETION
 def calculate_streak(habit_id):
     logs = (
         HabitLog.query.filter_by(habit_id=habit_id, completed=True).order_by(HabitLog.date.desc()).all()
@@ -159,6 +177,30 @@ def calculate_streak(habit_id):
 def get_streak(habit_id):
     streak = calculate_streak(habit_id)
     return jsonify({"streak": streak})
+
+# get the completion rate for a habit in the last 30 days
+@app.route('/api/habits/<int:habit_id>/rate', methods=['GET'])
+@login_required
+def get_completion_rate(habit_id):
+    today = date.today()
+    thirty_days_ago = today - timedelta(days=30)
+
+    logs = HabitLog.query.filter(
+        HabitLog.habit_id == habit_id,
+        HabitLog.date >= thirty_days_ago
+    ).all()
+
+    total = 30
+    completed = sum(1 for log in logs if log.status)
+    rate = (completed / total) * 100
+
+    return jsonify({
+        "habit_id": habit_id,
+        "completion_rate": round(rate, 2),
+        "completed_days": completed,
+        "total_days": total
+    })
+
 
 # ----------------------------------------------------------
 # LOGGING IN AND OUT
