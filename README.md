@@ -24,7 +24,4 @@
 
 # live demo:
 
-    NOTE: still need to complete Vercel setup
-
-    [https://your-frontend.vercel.app]
-    (https://your-frontend.vercel.app)
+    NOTE: will eventually setup deployment via GitHub pages
