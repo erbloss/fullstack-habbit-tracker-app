@@ -1,6 +1,6 @@
 # app description:
 
-    A personal habit tracker that allows a user to log in, create daily or weekly habits, and mark them as complete each day.  Users can view habit progress over time.
+    A personal habit tracker that allows a user to log in, create daily habits, and mark them as complete each day.  Users can view habit progress over time.
 
 # tech stack:
 
@@ -24,7 +24,4 @@
 
 # live demo:
 
-    NOTE: still need to complete Vercel setup
-
-    [https://your-frontend.vercel.app]
-    (https://your-frontend.vercel.app)
+    NOTE: will eventually setup deployment via GitHub pages
