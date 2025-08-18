@@ -1,6 +1,6 @@
 # app description:
 
-    A personal habit tracker that allows a user to log in, create daily or weekly habits, and mark them as complete each day.  Users can view habit progress over time.
+    A personal habit tracker that allows a user to log in, create daily habits, and mark them as complete each day.  Users can view habit progress over time.
 
 # tech stack:
 
