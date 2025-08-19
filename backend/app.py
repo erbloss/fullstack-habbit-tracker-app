@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from functools import wraps
 from datetime import date, timedelta
 from models import db, User, Habit, HabitLog
 from sqlalchemy.exc import IntegrityError
@@ -10,8 +11,18 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import re
 
+def secure_route(f):
+    @wraps(f)
+    @cross_origin(origin='http://localhost:3000', supports_credentials=True)
+    @login_required
+    def decorated_function(*args, **kwargs):
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 app = Flask(__name__, static_folder='../frontend/build', static_url_path='/')
 CORS(app, origins=["http://localhost:3000"], supports_credentials=True)
+
 app.config['SECRET_KEY'] = 'supersecretkey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///habits.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -23,6 +34,10 @@ db.init_app(app)
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
+
+login_manager.unauthorized_handler
+def unauthorized():
+    return jsonify({'error': 'unauthorized'}), 401
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -108,9 +123,13 @@ def clear_habits():
     db.session.commit()
     return jsonify({'message': 'All habits cleared'})
 
+#------------------------------------------------------------------
+#    HABIT LOGGING
+
 # generate log to track daily completeness data
-@app.route('/api/habits/<int:habit_id>log', methods=['POST'])
+@app.route('/api/habits/<int:habit_id>/log', methods=['POST'])
 @login_required
+@secure_route
 def add_habit_log(habit_id):
     data = request.get_json()
     log_date = date.fromisoformat(data.get('date'))
@@ -131,9 +150,10 @@ def add_habit_log(habit_id):
     
     return jsonify({'message': 'Log saved'}), 200
 
-# get logs for a habit
-@app.route('/api/habits/<int:habit_id>/logs', methods=['GET'])
+# get logs for one particular habit
+@app.route('/api/habits/<int:habit_id>/getlogs', methods=['GET'])
 @login_required
+@secure_route
 def get_habit_logs(habit_id):
     logs = HabitLog.query.filter_by(habit_id=habit_id).order_by(HabitLog.date).all()
     return jsonify([{'date': log.date.isoformat(), 
@@ -141,8 +161,9 @@ def get_habit_logs(habit_id):
                     for log in logs])
 
 # get logs for all habits
-@app.route('/api/habits/logs', methods=['GET'])
+@app.route('/api/habits/getlogs', methods=['GET'])
 @login_required
+@secure_route
 def get_all_habit_logs():
     user_habits = Habit.query.filter_by(user_id=current_user.id).all()
     habit_ids = [habit.id for habit in user_habits]
@@ -166,13 +187,15 @@ def calculate_streak(habit_id):
 
     for i, log in enumerate(logs):
         expected_date = today - timedelta(days=i)
-        if log.date == expected_date:
+        print(f"[DEBUG] Comparing log date {log.date} to expected {expected_date}")
+        if log.date.date() == expected_date:
             streak += 1
         else:
             break
     return streak
 
 @app.route('/api/habits/<int:habit_id>/streak', methods=['GET'])
+@secure_route
 @login_required
 def get_streak(habit_id):
     streak = calculate_streak(habit_id)
@@ -180,6 +203,7 @@ def get_streak(habit_id):
 
 # get the completion rate for a habit in the last 30 days
 @app.route('/api/habits/<int:habit_id>/rate', methods=['GET'])
+@secure_route
 @login_required
 def get_completion_rate(habit_id):
     today = date.today()
@@ -191,7 +215,7 @@ def get_completion_rate(habit_id):
     ).all()
 
     total = 30
-    completed = sum(1 for log in logs if log.status)
+    completed = sum(1 for log in logs if log.completed)
     rate = (completed / total) * 100
 
     return jsonify({

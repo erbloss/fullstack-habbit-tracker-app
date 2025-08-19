@@ -13,8 +13,11 @@ function SingleHabitGraph () {
     useEffect(() => {
         const fetchLogs = async () => {
             try {
-                const res = await axios.get(`http://localhost:5000/api/habits/${selectedHabit}/logs`, {withCredentials: true});
-                setLogs(res.data);
+                if(selectedHabit){
+                    const res = await axios.get(`http://localhost:5000/api/habits/${selectedHabit}/getlogs`, {withCredentials: true});
+                    setLogs(res.data);
+                    console.log("Selected Habit = ", selectedHabit);
+                }
             } catch (err) {
                 console.error("Failed to fetch logs:", err);
             }
@@ -52,20 +55,22 @@ function SingleHabitGraph () {
     return (
         <div>
             <p>Select a habit from the drop-down menu to view your progress chart.</p>
-            <select
+            <select className="drop-down"
                 id="habits"
                 value={selectedHabit}
                 onChange={(e) => setSelectedHabit(e.target.value)}>
-                <option value="" disabled>Habit</option>
+                <option value="" disabled>--Select Habit--</option>
                 {habits.map((habit) => (
                     <option key={habit.id} value={habit.id}>
                     {habit.name}</option>
                 ))}
             </select>
+            <br/><br/>
             {selectedHabit && logs.length > 0 ? (
                 <Line data={chartData_single} />
                 ): (
-                    <div></div>
+                    <div>
+                    </div>
                 )}
         </div>
     );

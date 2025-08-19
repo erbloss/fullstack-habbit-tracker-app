@@ -6,6 +6,7 @@ import 'chart.js/auto';
 function AllHabitsGraph() {
     const [logs, setLogs] = useState([]);
     const [habits, setHabits] = useState([]);
+    var percentages = [];
 
     // Fetch all habits for user from db to populate drop down menu
     useEffect(() => {
@@ -25,14 +26,14 @@ function AllHabitsGraph() {
     useEffect(() => {
         const fetchAllLogs = async () => {
             try {
-                const res = await axios.get(`http://localhost:5000/api/habits/logs`, { withCredentials: true});
+                const res = await axios.get(`http://localhost:5000/api/habits/getlogs`, { withCredentials: true});
                 setLogs(res.data);
             } catch (err) {
                 console.error("Failed to fetch logs:", err);
             }
         };
         fetchAllLogs();
-    }, []);
+    }, [logs]);
 
     // process all logs to calculate daily percentages
     const logsPercentageByDate = (logs, totalHabits) => {
@@ -47,7 +48,7 @@ function AllHabitsGraph() {
             }
         });
         const sortedDates = Object.keys(grouped).sort((a, b) => new Date(a) - new Date(b));
-        const percentages = sortedDates.map(date => ({
+        percentages = sortedDates.map(date => ({
             date,
             percent: totalHabits > 0 ? (grouped[date].completed / totalHabits) * 100 : 0
         }));
