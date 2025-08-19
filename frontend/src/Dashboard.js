@@ -8,8 +8,6 @@ function Dashboard() {
     const [newHabit, setNewHabit] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
     const categories = ["Fitness", "Wellness", "Work", "Household", "Relationship", "Other"];
-    const toggle = document.getElementById('toggle');
-
     const [first_name, setFirstName] = useState('');
     const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
@@ -106,6 +104,34 @@ function Dashboard() {
         }
     };
 
+    // handle the toggle action so that the db is updated for status
+    const handleToggle = async (habitId, isChecked) => {
+        const today = new Date().toLocaleDateString('en-CA');
+        console.log(today);
+        
+        try {
+            const response = await fetch(`http://localhost:5000/api/habits/${habitId}/log`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json',},
+                credentials: 'include',
+                body: JSON.stringify({
+                    date: today, 
+                    status: isChecked,
+                }),
+            });
+            const result = await response.json();
+            console.log(result.message || result.error);
+
+            setHabits(prevHabits =>
+                prevHabits.map( habit =>
+                    habit.id === habitId ? { ...habit, completed: isChecked }
+                    : habit
+                )
+            );
+        } catch (err) {
+            console.error('Toggle update failed: ', err);
+        }
+    };
 
     // ********** UI *****************************
     return (
@@ -158,7 +184,7 @@ function Dashboard() {
                                 type="checkbox" 
                                 id={`toggle-${habit.id}`}
                                 checked={habit.completed} 
-                                onChange={(e) => e.target.checked ? markDone(habit.id) : markUndone(habit.id)} />
+                                onChange={(e) => handleToggle(habit.id, e.target.checked)} />
                             <label htmlFor={`toggle-${habit.id}`}></label></div>
 
                         <div><button onClick={() => deleteHabit(habit.id)} className="trash-button">🗑️</button></div>  

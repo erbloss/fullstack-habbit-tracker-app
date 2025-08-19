@@ -36,12 +36,9 @@ function History() {
         console.log("Fetching logs for habit ID:", habitId);
 
         try{
-            if(habitId) {
-                const res = await axios.get(`http://localhost:5000/api/habits/${habitId}/streak`, { withCredentials: true});
-                console.log("fetch streak data: ", res.data.streak)
-                return Number(res.data.streak);
-            }
-            
+            const res = await axios.get(`http://localhost:5000/api/habits/${habitId}/streak`, { withCredentials: true});
+            console.log("fetch streak data: ", res.data.streak)
+            return Number(res.data.streak);
         } catch (err) {
             console.error(`Failed to fetch streak for habit ${habitId}:`, err);
             return 0;
@@ -89,7 +86,7 @@ function History() {
             <br /> <br /> <br />
 
             <div className="habit-streak-box">
-                <h2>🔥 Your Habit Hot Streaks 🔥</h2>
+                <h2>🔥 Your Current Hot Streaks 🔥</h2>
                 {habits.map(habit => (
                     <div key={habit.id} className="habit-streaks">
                     <div><strong>{habit.name}</strong>

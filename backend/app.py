@@ -7,13 +7,15 @@ from datetime import date, timedelta
 from models import db, User, Habit, HabitLog
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
+
 
 import os
 import re
 
 def secure_route(f):
     @wraps(f)
-    @cross_origin(origin='http://localhost:3000', supports_credentials=True)
     @login_required
     def decorated_function(*args, **kwargs):
         return f(*args, **kwargs)
@@ -128,7 +130,6 @@ def clear_habits():
 
 # generate log to track daily completeness data
 @app.route('/api/habits/<int:habit_id>/log', methods=['POST'])
-@login_required
 @secure_route
 def add_habit_log(habit_id):
     data = request.get_json()
@@ -137,8 +138,10 @@ def add_habit_log(habit_id):
 
     log = HabitLog.query.filter_by(habit_id=habit_id, date=log_date).first()
     if log:
-        log.status = status #update existing instead of inserting
+        #update existing instead of inserting
+        log.status = status 
     else:
+        # create a new log
         log = HabitLog(habit_id=habit_id, date=log_date, status=status)
         db.session.add(log)
     
@@ -150,9 +153,22 @@ def add_habit_log(habit_id):
     
     return jsonify({'message': 'Log saved'}), 200
 
+# create log entry for any missing logs for a complete data set
+def create_missing_logs():
+    with app.app_context():
+        today = date.today()
+        habits = Habit.query.all()
+
+        for habit in habits:
+            existing_log = HabitLog.query.filter_by(habit_id=habit.id, date=today).first()
+            if not existing_log: #no log exists
+                log = HabitLog(habit_id=habit.id, date=today, status=False)
+                db.session.add(log)
+        db.session.commit()
+
+
 # get logs for one particular habit
 @app.route('/api/habits/<int:habit_id>/getlogs', methods=['GET'])
-@login_required
 @secure_route
 def get_habit_logs(habit_id):
     logs = HabitLog.query.filter_by(habit_id=habit_id).order_by(HabitLog.date).all()
@@ -162,7 +178,6 @@ def get_habit_logs(habit_id):
 
 # get logs for all habits
 @app.route('/api/habits/getlogs', methods=['GET'])
-@login_required
 @secure_route
 def get_all_habit_logs():
     user_habits = Habit.query.filter_by(user_id=current_user.id).all()
@@ -179,24 +194,17 @@ def get_all_habit_logs():
 # ----------------------------------------------------------
 #  HABIT STREAKS AND COMPLETION
 def calculate_streak(habit_id):
-    logs = (
-        HabitLog.query.filter_by(habit_id=habit_id, completed=True).order_by(HabitLog.date.desc()).all()
-    )
+    logs = HabitLog.query.filter_by(habit_id=habit_id, status=True).all()
+    completed_dates = {log.date.date() if hasattr(log.date, 'date') else log.date for log in logs}
     streak = 0
-    today = date.today()
+    today = date.today() - timedelta(days=1)
 
-    for i, log in enumerate(logs):
-        expected_date = today - timedelta(days=i)
-        print(f"[DEBUG] Comparing log date {log.date} to expected {expected_date}")
-        if log.date.date() == expected_date:
-            streak += 1
-        else:
-            break
+    while (today - timedelta(days=streak)) in completed_dates:
+        streak += 1
     return streak
 
 @app.route('/api/habits/<int:habit_id>/streak', methods=['GET'])
 @secure_route
-@login_required
 def get_streak(habit_id):
     streak = calculate_streak(habit_id)
     return jsonify({"streak": streak})
@@ -204,7 +212,6 @@ def get_streak(habit_id):
 # get the completion rate for a habit in the last 30 days
 @app.route('/api/habits/<int:habit_id>/rate', methods=['GET'])
 @secure_route
-@login_required
 def get_completion_rate(habit_id):
     today = date.today()
     thirty_days_ago = today - timedelta(days=30)
@@ -215,7 +222,7 @@ def get_completion_rate(habit_id):
     ).all()
 
     total = 30
-    completed = sum(1 for log in logs if log.completed)
+    completed = sum(1 for log in logs if log.status)
     rate = (completed / total) * 100
 
     return jsonify({
@@ -286,4 +293,9 @@ def serve():
     return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == '__main__':
+    # scheduler generates log daily at midnight 
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(create_missing_logs, CronTrigger(hour=0, minute=0))
+    scheduler.start()
+
     app.run(debug=True)
