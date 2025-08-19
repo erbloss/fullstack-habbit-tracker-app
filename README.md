@@ -7,7 +7,7 @@
     frontend = React (JavaScript)
     backend = Flask (Python)
     database = SQLite
-    deployment = Vercel (frontend) and Render (backend)
+    deployment = GitHub Pages
 
 # setup instructions:
 
