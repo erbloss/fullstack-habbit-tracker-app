@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Fragment } from 'react';
 import axios from 'axios';
 import HamburgerMenu from './HamburgerMenu';
 
@@ -49,16 +48,22 @@ function Dashboard() {
         fetchHabits();
     };
 
-    // mark habit as done
-    const markDone = async (id) => {
-        await axios.post(`http://localhost:5000/api/habits/${id}/complete`, {}, { withCredentials: true });
-        fetchHabits();
-    };
+    // change status of habit. done --> undone OR undone --> done from toggle action
+    const changeStatus = async (id) => {
+        try {
+            const habit = habits.find(h => h.id === id);
+            const isCompleted = habit.status;
 
-    // mark habit as not done
-    const markUndone = async (id) => {
-        await axios.post(`http://localhost:5000/api/habits/${id}/undo`, {}, { withCredentials: true });
-        fetchHabits();
+            if (isCompleted) {
+                await axios.post(`http://localhost:5000/api/habits/${id}/markUndone`, {}, { withCredentials: true });
+            }
+            if (!isCompleted) {
+                await axios.post(`http://localhost:5000/api/habits/${id}/markDone`, {}, { withCredentials: true });
+            }
+            fetchHabits();
+        } catch (err) {
+        console.error("Failed to change habit status:", err);
+        }
     };
 
     // remove a single specific habit
@@ -90,46 +95,6 @@ function Dashboard() {
             setHabits([]);
         }catch (err){
             console.error("Failed to clear habits", err);
-        }
-    };
-
-    // update the habit category
-    const updateHabitCategory = async (id, newCategory) => {
-        try {
-            await axios.put(`http://localhost:5000/api/habits/${id}`,
-            { category: newCategory }, { withCredentials: true });
-            fetchHabits(); // Refresh the habits after update
-        } catch (err) {
-            console.error("Failed to update category:", err);
-        }
-    };
-
-    // handle the toggle action so that the db is updated for status
-    const handleToggle = async (habitId, isChecked) => {
-        const today = new Date().toLocaleDateString('en-CA');
-        console.log(today);
-        
-        try {
-            const response = await fetch(`http://localhost:5000/api/habits/${habitId}/log`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json',},
-                credentials: 'include',
-                body: JSON.stringify({
-                    date: today, 
-                    status: isChecked,
-                }),
-            });
-            const result = await response.json();
-            console.log(result.message || result.error);
-
-            setHabits(prevHabits =>
-                prevHabits.map( habit =>
-                    habit.id === habitId ? { ...habit, completed: isChecked }
-                    : habit
-                )
-            );
-        } catch (err) {
-            console.error('Toggle update failed: ', err);
         }
     };
 
@@ -183,8 +148,8 @@ function Dashboard() {
                             <input 
                                 type="checkbox" 
                                 id={`toggle-${habit.id}`}
-                                checked={habit.completed} 
-                                onChange={(e) => handleToggle(habit.id, e.target.checked)} />
+                                checked={habit.status} 
+                                onChange={(e) => changeStatus(habit.id)} />
                             <label htmlFor={`toggle-${habit.id}`}></label></div>
 
                         <div><button onClick={() => deleteHabit(habit.id)} className="trash-button">🗑️</button></div>  
