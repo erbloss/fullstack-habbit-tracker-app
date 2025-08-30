@@ -6,9 +6,9 @@ from models import HabitLog
 # Seeds the habits logs for habit IDs 1-5
 HABIT_IDS = [1, 2, 3, 4, 5]
 
-# Seed habits for range 10 days ago up to today
+# Seed habits for range 30 days ago up to today
 end_date = date.today()
-start_date = end_date - timedelta(days=10)
+start_date = end_date - timedelta(days=30)
 
 def seed_logs():
     with app.app_context():

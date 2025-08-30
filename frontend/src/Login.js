@@ -10,10 +10,15 @@ function Login() {
     const navigate = useNavigate();
 
     const login = async () => {
+        console.log('Login button clicked');  // ✅ Add this
         try {
-            await axios.post('http://localhost:5000/api/login', { username, password }, { withCredentials: true});
+            const res = await axios.post('http://localhost:5000/api/login', 
+                { username, password }, 
+                { withCredentials: true});
+            console.log('Login successful:', res);  // ✅ Add this
             navigate('/');
         } catch (err) {
+            console.error('Login error:', err);  // ✅ Add this
             alert('Login Failed');
         }
     };
