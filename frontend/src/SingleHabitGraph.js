@@ -9,13 +9,24 @@ function SingleHabitGraph () {
     const [logs, setLogs] = useState([]);
     const [habits, setHabits] = useState([]);
 
-    // Fetch logs for a specific habit
+    // Fetch logs for a specific habit pertaining to the last 30 days
     useEffect(() => {
         const fetchLogs = async () => {
             try {
                 if(selectedHabit){
                     const res = await axios.get(`http://localhost:5000/api/habits/${selectedHabit}/getlogs`, {withCredentials: true});
-                    setLogs(res.data);
+                    // filter to include all logs within past 30 days
+                    const now = new Date();
+                    const thirtyDaysAgo = new Date();
+                    thirtyDaysAgo.setDate(now.getDate() - 30);
+
+                    const filteredLogs = res.data.filter(log => {
+                        const logDate = new Date(log.date);
+                        return logDate>= thirtyDaysAgo && logDate <= now;
+                    });
+                    // ensure logs are sorted chronologically
+                    filteredLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    setLogs(filteredLogs);
                     console.log("Selected Habit = ", selectedHabit);
                 }
             } catch (err) {
@@ -54,7 +65,7 @@ function SingleHabitGraph () {
     };
     return (
         <div>
-            <p>Select a habit from the drop-down menu to view your progress chart.</p>
+            <p>Select a habit to view your progress chart for the previous 30 days:</p>
             <select className="drop-down"
                 id="habits"
                 value={selectedHabit}

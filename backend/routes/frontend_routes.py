@@ -6,16 +6,16 @@ from models import HabitLog
 
 
 # THIS FILE DEFINES METHODS AND ROUTES USED BY THE FRONTEND
+# RELATED TO HABIT STREAKS AND COMPLETION RATES FOR CHARTS
 
 frontend_bp = Blueprint('frontend', __name__, url_prefix='/api/habits')
+
 def secure_route(f):
     @wraps(f)
     @login_required
     def decorated_function(*args, **kwargs):
         return f(*args, **kwargs)
     return decorated_function
-
-#  HABIT STREAKS AND COMPLETION
 
 def calculate_streak(habit_id):
     logs = HabitLog.query.filter_by(habit_id=habit_id, status=True).all()
@@ -33,7 +33,7 @@ def get_streak(habit_id):
     streak = calculate_streak(habit_id)
     return jsonify({"streak": streak})
 
-# get the completion rate for a habit in the last 30 days
+# get the completion rate for a habit pertaining to the last 30 days
 @frontend_bp.route('/<int:habit_id>/rate', methods=['GET'])
 @secure_route
 def get_completion_rate(habit_id):

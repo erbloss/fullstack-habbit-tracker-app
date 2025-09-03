@@ -14,7 +14,7 @@ habit_bp = Blueprint('habit', __name__, url_prefix='/api/habits')
 def add_habit():
     data = request.get_json()
     habit = Habit(name=data['name'], user_id=current_user.id,
-                  category=data['category'], date_created=date.today())
+                  category=data['category'], date_created=date.today(), status = 0)
     db.session.add(habit)
     db.session.commit()
     return jsonify({'message': 'Habit added'})
