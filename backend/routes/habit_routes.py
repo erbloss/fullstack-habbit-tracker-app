@@ -30,7 +30,7 @@ def get_habits():
     for habit in habits:
         existing_log= HabitLog.query.filter_by(habit_id=habit.id, date=today).first()
         if not existing_log:
-            log = HabitLog(habit_id=habit.id, date=today, status=False)
+            log = HabitLog(habit_id=habit.id, date=today)
             db.session.add(log)
     db.session.commit() 
 
@@ -89,9 +89,18 @@ def undo_habit(habit_id):
 @habit_bp.route('/reset', methods=['POST'])
 @login_required
 def reset_habits():
+    today = date.today()
+
+    # reset HabitLog status
+    logs = HabitLog.query.join(Habit).filter(Habit.user_id == current_user.id, HabitLog.date == today).all()
+    for log in logs:
+        log.status = False
+
+    # reset Habit Status
     habits = Habit.query.filter_by(user_id=current_user.id).all()
     for h in habits:
         h.status = False
+
     db.session.commit()
     return jsonify({'message': 'Habits Reset'})
 

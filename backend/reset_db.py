@@ -1,9 +1,15 @@
-from backend import habits  # adjust import according to your app structure
+from flask import Flask
+from extensions import db
+from models import Habit, HabitLog, HabitSnapshots
+from app import create_app
 
-# Drop all tables
-habits.drop_all()
+app = create_app()
 
-# Recreate all tables according to your models
-habits.create_all()
+with app.app_context():
+    # Drop all tables for habits but keep user data
+    Habit.query.delete()
+    HabitLog.query.delete()
+    HabitSnapshots.query.delete()
 
-print("Database cleared and tables recreated!")
+    db.session.commit()
+    print("Database cleared and tables recreated!")

@@ -41,9 +41,18 @@ function Dashboard() {
         }
     };
 
-    // add a new habit
+    // add a new habit. 
+    // check to ensure habit and category input are both included
     const addHabit = async () => {
-        await axios.post('http://localhost:5000/api/habits', { name: newHabit, category: selectedCategory}, { withCredentials: true});
+        if (!newHabit){
+            alert('Please Enter a Habit to Track');
+            return;
+        }
+        if (!selectedCategory){
+            alert('Please Select a Category');
+            return;
+        }
+        await axios.post('http://localhost:5000/api/habits', { name: newHabit, category: selectedCategory, status: false}, { withCredentials: true});
         setNewHabit('');
         fetchHabits();
     };
@@ -81,8 +90,15 @@ function Dashboard() {
 
     // undo complete status of all habits
     const resetHabits = async () => {
-        await axios.post(`http://localhost:5000/api/habits/reset`, {}, { withCredentials: true });
-        fetchHabits();
+        const confirmReset = window.confirm("Are you sure you want to reset the status of all habits to incomplete?");
+        if(!confirmReset)
+            return;
+        try{
+            await axios.post(`http://localhost:5000/api/habits/reset`, {}, { withCredentials: true });
+            fetchHabits();
+        } catch (err) {
+            console.error("Failed to reset habits", err);
+        }
     };
 
     // remove all habits from list
@@ -91,7 +107,7 @@ function Dashboard() {
         if (!confirmDelete) 
             return;
         try {
-            await axios.post(`http://localhost:5000/api/habits/reset`, {}, { withCredentials: true });
+            await axios.post(`http://localhost:5000/api/habits/clear`, {}, { withCredentials: true });
             setHabits([]);
         }catch (err){
             console.error("Failed to clear habits", err);
@@ -127,8 +143,8 @@ function Dashboard() {
             <div className="habit-grid">
                 <div className="grid-header">Habit</div>
                 <div className="grid-header">Category</div>
-                <div className="grid-header">Status</div>
-                <div className="grid-header">Delete</div>
+                <div className="grid-header"></div>
+                <div className="grid-header"></div>
 
                 {habits.map(habit => (
                     <React.Fragment key={habit.id}>
@@ -159,7 +175,7 @@ function Dashboard() {
 
             </div>
 
-            {habits.length > 0 && habits.every(habit => habit.completed) && (
+            {habits.length > 0 && habits.every(habit => habit.status) && (
                 <p className="congrats-msg">CONGRATULATIONS! You've completed all of your daily habits!</p>
             )}
 

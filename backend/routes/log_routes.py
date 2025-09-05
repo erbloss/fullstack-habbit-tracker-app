@@ -63,6 +63,7 @@ def create_missing_logs():
 @secure_route
 def get_habit_logs(habit_id):
     logs = HabitLog.query.filter_by(habit_id=habit_id).order_by(HabitLog.date).all()
+       
     return jsonify([{'date': log.date.isoformat(), 
                      'status': log.status}
                     for log in logs])
@@ -103,43 +104,45 @@ def log_daily_habit_snapshot():
         print(f"Habit snapshots logged for {today}")
     
  # method to get the habit snapshots for users 
-@logs_bp.route('/api/habit_snapshots/<int:user_id>')
+@logs_bp.route('/api/habit_snapshots/<int:user_id>', methods=['GET'])
 def get_habit_snapshots(user_id):
     snapshots = HabitSnapshots.query.filter_by(user_id=user_id).order_by(HabitSnapshots.snapshot_date.desc()).all()
     return jsonify([{
-            "snapshot_date": s.snapshot_data.isoformat(),
+            "snapshot_date": s.snapshot_date.isoformat(),
             "total_habits": s.total_habits
         } for s in snapshots 
     ])
 
-# computes the completion rate of 
-@logs_bp.route('/api/completion_history/<int:user_id>')
+# computes the ratio num habits to completed habits daily for past 30 days and displays as %
+@logs_bp.route('/api/completion_history/<int:user_id>', methods=['GET'])
 @login_required
 def get_completion_history(user_id):
     today = date.today()
 
     snapshots = HabitSnapshots.query.filter_by(user_id=user_id).order_by(HabitSnapshots.snapshot_date.desc()).all()
     results = []
-
-    for snapshot in snapshots:
-        snapshot_date = snapshot.snapshot_date
-        total_habits = snapshot.total_habits
-
+   
+    for snap in snapshots:
+        snapshot_date = snap.snapshot_date
+        total_habits = snap.total_habits
+    
         # get all logs for that user/date
         habits = Habit.query.filter_by(user_id=user_id).all()
         habit_ids = [h.id for h in habits]
 
+        # count num of completed habits for that user on the specific day
         logs = HabitLog.query.filter(
             HabitLog.habit_id.in_(habit_ids),
             HabitLog.date == snapshot_date,
             HabitLog.status == True
         ).count()
 
-        completion = (logs / total_habits) * 100 if total_habits else 0
+        completion = (logs / total_habits) * 100 if total_habits > 0 else 0
 
+        formattedDate = snapshot_date.strftime("%m-%d")
         results.append({
-            'date': snapshot_date.isoformat(),
-            'completion': round(completion, 2)
+            'date': formattedDate,
+            'completion_rate': round(completion, 2)
         })
 
     return jsonify(results)

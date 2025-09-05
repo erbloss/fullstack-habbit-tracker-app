@@ -15,7 +15,7 @@ def login():
     user = User.query.filter_by(username=data.get('username')).first()
 
     if user and check_password_hash(user.password, data.get('password')):
-        login_user(user)
+        login_user(user, remember=False)
         return jsonify({'message': 'Logged In'})
     return jsonify({'error': 'Error Logging In.  Invalid Credentials'}), 401
 
@@ -57,4 +57,5 @@ def get_user():
     return jsonify({ 'username': current_user.username,
                     'first_name': current_user.first_name,
                     'last_name': current_user.last_name,
+                    'id': current_user.id
                     })

@@ -82,8 +82,7 @@ function History() {
             <AllHabitsGraph />
             <br /> <br /> <br/>
 
-            <SingleHabitGraph />
-            <br /> <br /> <br />
+            
 
             <div className="habit-streak-box">
                 <h2>🔥 Your Current Hot Streaks 🔥</h2>
@@ -94,6 +93,9 @@ function History() {
                     </div>
                 ))}
             </div>
+            <br /> <br /> <br />
+            
+            <SingleHabitGraph />
             <br /> <br /> <br />
 
             <div className="habit-streak-box">

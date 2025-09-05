@@ -12,6 +12,7 @@ function AllHabitsGraph() {
     const fetchUserId = async () => {
         try {
             const res = await axios.get('http://localhost:5000/api/user', { withCredentials: true});
+            console.log("User ID: ", userId);
             setUserId(res.data.id);
         } catch (err) {
             console.error("Failed to fetch user info:", err);
@@ -21,7 +22,7 @@ function AllHabitsGraph() {
     // fetch completion % rates by day for the user
     useEffect(() => {
         fetchUserId();
-        axios.get(`/api/completion_history/${userId}`, { withCredentials: true })
+        axios.get(`http://localhost:5000/api/completion_history/${userId}`, { withCredentials: true })
             .then(res => {
                 setCompletionData(res.data);
                 setLoading(false);
@@ -34,7 +35,7 @@ function AllHabitsGraph() {
 
     // fill line chart
     const chartData = {
-        labels: completionData.map(item => item.date),
+        labels: completionData.map(item => item.date).sort(),
         datasets: [{
             label: '% Daily Habit Completion',
             data: completionData.map(item => item.completion_rate),
