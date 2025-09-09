@@ -7,7 +7,6 @@
     frontend = React (JavaScript)
     backend = Flask (Python)
     database = SQLite
-    deployment = GitHub Pages
 
 # setup instructions:
 
@@ -23,6 +22,3 @@
     npm run build
     npm start
 
-# live demo:
-
-    NOTE: will eventually setup deployment via GitHub pages
