@@ -15,6 +15,7 @@
     python -m venv venv
     pip install -r requirements.txt
     cd backend
+    python seed_db.py
     python app.py
 
     new terminal:
