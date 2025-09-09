@@ -33,11 +33,8 @@ function History() {
 
     // fetch streak for a single habit
     const fetchStreak = async (habitId) => {
-        console.log("Fetching logs for habit ID:", habitId);
-
         try{
             const res = await axios.get(`http://localhost:5000/api/habits/${habitId}/streak`, { withCredentials: true});
-            console.log("fetch streak data: ", res.data.streak)
             return Number(res.data.streak);
         } catch (err) {
             console.error(`Failed to fetch streak for habit ${habitId}:`, err);
@@ -63,7 +60,6 @@ function History() {
                 // find the longest streak
                 const longest = sortedHabits.length > 0 ? sortedHabits[0] : null;
                 setLongestStreak(longest);
-                console.log("Sorted Habits: ", sortedHabits);
             } catch (err) {
                 console.error("Failed to fetch habits:", err);
             }
@@ -96,16 +92,6 @@ function History() {
             <br /> <br /> <br />
             
             <SingleHabitGraph />
-            <br /> <br /> <br />
-
-            <div className="habit-streak-box">
-                <h2>🏆 Your Longest Streak to Date 🏆</h2>
-                {longestStreak && longestStreak.streak > 0 ? (
-                    <div><strong>{longestStreak.name}</strong> for {longestStreak.streak} consecutive days</div>
-                ) : (
-                    <div><strong>No records yet.  Keep working!</strong></div>
-                )}
-            </div>
             <br /> <br /> <br />
         </div>
     );
