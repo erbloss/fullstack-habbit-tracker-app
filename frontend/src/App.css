@@ -129,6 +129,14 @@ input {
   width: 200px;
 }
 
+select.drop-down {
+  position: absolute;
+  left: 50%;
+  right: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+}
+
 button {
   margin-inline: 5px;
   background-color: #eeeef0;

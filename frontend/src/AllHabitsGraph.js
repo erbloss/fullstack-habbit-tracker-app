@@ -4,65 +4,44 @@ import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
 
 function AllHabitsGraph() {
-    const [logs, setLogs] = useState([]);
-    const [habits, setHabits] = useState([]);
+    const [userId, setUserId] = useState('');
+    const [completionData, setCompletionData] = useState([]);
+    const [loading, setLoading] = useState([]);
 
-    // Fetch all habits for user from db to populate drop down menu
+    //get current user id
+    const fetchUserId = async () => {
+        try {
+            const res = await axios.get('http://localhost:5000/api/user', { withCredentials: true});
+            console.log("User ID: ", userId);
+            setUserId(res.data.id);
+        } catch (err) {
+            console.error("Failed to fetch user info:", err);
+        }
+    };
+
+    // fetch completion % rates by day for the user
     useEffect(() => {
-        const fetchHabits = async () => {
-            try{
-                const res = await axios.get(`http://localhost:5000/api/habits`, {withCredentials: true});
-                setHabits(res.data);
-            } catch (err) {
-                console.error("Failed to fetch habits");
-            }
-        };
-        fetchHabits();
-    }, [habits]);
+        fetchUserId();
+        axios.get(`http://localhost:5000/api/completion_history/${userId}`, { withCredentials: true })
+            .then(res => {
+                setCompletionData(res.data);
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error("Error loading completion history", err);
+                setLoading(false);
+            });
+    }, [userId]);
 
-
-    // Fetch logs for ALL habits
-    useEffect(() => {
-        const fetchAllLogs = async () => {
-            try {
-                const res = await axios.get(`http://localhost:5000/api/habits/logs`, { withCredentials: true});
-                setLogs(res.data);
-            } catch (err) {
-                console.error("Failed to fetch logs:", err);
-            }
-        };
-        fetchAllLogs();
-    }, []);
-
-    // process all logs to calculate daily percentages
-    const logsPercentageByDate = (logs, totalHabits) => {
-        const grouped = {};
-        logs.forEach(log => {
-            if(!grouped[log.date]) {
-                grouped[log.date] = { completed: 0, total: 0};
-            }
-            grouped[log.date].total += 1;
-            if(log.status) {
-                grouped[log.date].completed += 1;
-            }
-        });
-        const sortedDates = Object.keys(grouped).sort((a, b) => new Date(a) - new Date(b));
-        const percentages = sortedDates.map(date => ({
-            date,
-            percent: totalHabits > 0 ? (grouped[date].completed / totalHabits) * 100 : 0
-        }));
-        return percentages;
-    }
-
-    // Chart data for all habits as percentage
-    const dailyPercentages = logsPercentageByDate(logs, habits.length);
-    const chartData_all = {
-        labels: dailyPercentages.map(item => item.date),
-        datasets:[{
+    // fill line chart
+    const chartData = {
+        labels: completionData.map(item => item.date).sort(),
+        datasets: [{
             label: '% Daily Habit Completion',
-            date: dailyPercentages.map(item => item.percent),
+            data: completionData.map(item => item.completion_rate),
             fill: false,
             borderColor: 'white',
+            backgroundColor: 'white',
             tension: 0.2,
         }],
     };
@@ -70,10 +49,10 @@ function AllHabitsGraph() {
     return (
         <div>
             <p>Daily habit completion across ALL habits:</p>
-                {logs.length > 0 ? (
-                    <Line data={chartData_all} />
-                ) : (
+                {loading ? (
                     <p>Loading chart data...</p>
+                ) : (
+                    <Line data={chartData} />
                 )}
         </div>
     )

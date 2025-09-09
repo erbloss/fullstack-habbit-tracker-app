@@ -10,10 +10,15 @@ function Login() {
     const navigate = useNavigate();
 
     const login = async () => {
+        console.log('Login button clicked');  // ✅ Add this
         try {
-            await axios.post('http://localhost:5000/api/login', { username, password }, { withCredentials: true});
+            const res = await axios.post('http://localhost:5000/api/login', 
+                { username, password }, 
+                { withCredentials: true});
+            console.log('Login successful:', res);  // ✅ Add this
             navigate('/');
         } catch (err) {
+            console.error('Login error:', err);  // ✅ Add this
             alert('Login Failed');
         }
     };
@@ -23,7 +28,7 @@ function Login() {
             <br />
             <h2>Sign In</h2>
             <input placeholder="Username" value={username} onChange={e => setUserName(e.target.value)} /><br />
-            <input placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} /><br /><br />
+            <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} /><br /><br />
             <button className="main-button" onClick={login}>Sign In</button>
             <p>New user? Please click <Link to="/register"> here</Link> to register as a new user.</p>
             <br />

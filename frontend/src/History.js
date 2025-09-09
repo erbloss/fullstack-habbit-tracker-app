@@ -35,7 +35,7 @@ function History() {
     const fetchStreak = async (habitId) => {
         try{
             const res = await axios.get(`http://localhost:5000/api/habits/${habitId}/streak`, { withCredentials: true});
-            return res.data.streak;
+            return Number(res.data.streak);
         } catch (err) {
             console.error(`Failed to fetch streak for habit ${habitId}:`, err);
             return 0;
@@ -55,7 +55,7 @@ function History() {
                 }));
                 // sort here
                 const sortedHabits = habitsWithStreaks.sort((a, b) => 
-                    b.streak - a.streak);
+                    (b.streak ?? 0) - (a.streak ?? 0));
                 setHabits(sortedHabits);
                 // find the longest streak
                 const longest = sortedHabits.length > 0 ? sortedHabits[0] : null;
@@ -78,28 +78,20 @@ function History() {
             <AllHabitsGraph />
             <br /> <br /> <br/>
 
-            <SingleHabitGraph />
-            <br /> <br /> <br />
+            
 
             <div className="habit-streak-box">
-                <h2>🔥 Your Habit Hot Streaks 🔥</h2>
+                <h2>🔥 Your Current Hot Streaks 🔥</h2>
                 {habits.map(habit => (
                     <div key={habit.id} className="habit-streaks">
                     <div><strong>{habit.name}</strong>
-                        ...............Streak: {habit.streak ?? 0}</div>
+                        ...............Streak: {habit.streak}</div>
                     </div>
                 ))}
             </div>
             <br /> <br /> <br />
-
-            <div className="habit-streak-box">
-                <h2>🏆 Your Longest Streak to Date 🏆</h2>
-                {longestStreak && longestStreak > 0 ? (
-                    <div><strong>{longestStreak.name}</strong> for {longestStreak.streak} consecutive days</div>
-                ) : (
-                    <div><strong>No records yet.  Keep working!</strong></div>
-                )}
-            </div>
+            
+            <SingleHabitGraph />
             <br /> <br /> <br />
         </div>
     );

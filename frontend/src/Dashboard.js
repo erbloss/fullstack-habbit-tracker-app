@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Fragment } from 'react';
 import axios from 'axios';
 import HamburgerMenu from './HamburgerMenu';
 
@@ -8,8 +7,6 @@ function Dashboard() {
     const [newHabit, setNewHabit] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
     const categories = ["Fitness", "Wellness", "Work", "Household", "Relationship", "Other"];
-    const toggle = document.getElementById('toggle');
-
     const [first_name, setFirstName] = useState('');
     const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
@@ -44,23 +41,38 @@ function Dashboard() {
         }
     };
 
-    // add a new habit
+    // add a new habit. 
+    // check to ensure habit and category input are both included
     const addHabit = async () => {
-        await axios.post('http://localhost:5000/api/habits', { name: newHabit, category: selectedCategory}, { withCredentials: true});
+        if (!newHabit){
+            alert('Please Enter a Habit to Track');
+            return;
+        }
+        if (!selectedCategory){
+            alert('Please Select a Category');
+            return;
+        }
+        await axios.post('http://localhost:5000/api/habits', { name: newHabit, category: selectedCategory, status: false}, { withCredentials: true});
         setNewHabit('');
         fetchHabits();
     };
 
-    // mark habit as done
-    const markDone = async (id) => {
-        await axios.post(`http://localhost:5000/api/habits/${id}/complete`, {}, { withCredentials: true });
-        fetchHabits();
-    };
+    // change status of habit. done --> undone OR undone --> done from toggle action
+    const changeStatus = async (id) => {
+        try {
+            const habit = habits.find(h => h.id === id);
+            const isCompleted = habit.status;
 
-    // mark habit as not done
-    const markUndone = async (id) => {
-        await axios.post(`http://localhost:5000/api/habits/${id}/undo`, {}, { withCredentials: true });
-        fetchHabits();
+            if (isCompleted) {
+                await axios.post(`http://localhost:5000/api/habits/${id}/markUndone`, {}, { withCredentials: true });
+            }
+            if (!isCompleted) {
+                await axios.post(`http://localhost:5000/api/habits/${id}/markDone`, {}, { withCredentials: true });
+            }
+            fetchHabits();
+        } catch (err) {
+        console.error("Failed to change habit status:", err);
+        }
     };
 
     // remove a single specific habit
@@ -78,8 +90,15 @@ function Dashboard() {
 
     // undo complete status of all habits
     const resetHabits = async () => {
-        await axios.post(`http://localhost:5000/api/habits/reset`, {}, { withCredentials: true });
-        fetchHabits();
+        const confirmReset = window.confirm("Are you sure you want to reset the status of all habits to incomplete?");
+        if(!confirmReset)
+            return;
+        try{
+            await axios.post(`http://localhost:5000/api/habits/reset`, {}, { withCredentials: true });
+            fetchHabits();
+        } catch (err) {
+            console.error("Failed to reset habits", err);
+        }
     };
 
     // remove all habits from list
@@ -88,24 +107,12 @@ function Dashboard() {
         if (!confirmDelete) 
             return;
         try {
-            await axios.post(`http://localhost:5000/api/habits/reset`, {}, { withCredentials: true });
+            await axios.post(`http://localhost:5000/api/habits/clear`, {}, { withCredentials: true });
             setHabits([]);
         }catch (err){
             console.error("Failed to clear habits", err);
         }
     };
-
-    // update the habit category
-    const updateHabitCategory = async (id, newCategory) => {
-        try {
-            await axios.put(`http://localhost:5000/api/habits/${id}`,
-            { category: newCategory }, { withCredentials: true });
-            fetchHabits(); // Refresh the habits after update
-        } catch (err) {
-            console.error("Failed to update category:", err);
-        }
-    };
-
 
     // ********** UI *****************************
     return (
@@ -136,8 +143,8 @@ function Dashboard() {
             <div className="habit-grid">
                 <div className="grid-header">Habit</div>
                 <div className="grid-header">Category</div>
-                <div className="grid-header">Status</div>
-                <div className="grid-header">Delete</div>
+                <div className="grid-header"></div>
+                <div className="grid-header"></div>
 
                 {habits.map(habit => (
                     <React.Fragment key={habit.id}>
@@ -157,8 +164,8 @@ function Dashboard() {
                             <input 
                                 type="checkbox" 
                                 id={`toggle-${habit.id}`}
-                                checked={habit.completed} 
-                                onChange={(e) => e.target.checked ? markDone(habit.id) : markUndone(habit.id)} />
+                                checked={habit.status} 
+                                onChange={(e) => changeStatus(habit.id)} />
                             <label htmlFor={`toggle-${habit.id}`}></label></div>
 
                         <div><button onClick={() => deleteHabit(habit.id)} className="trash-button">🗑️</button></div>  
@@ -168,7 +175,7 @@ function Dashboard() {
 
             </div>
 
-            {habits.length > 0 && habits.every(habit => habit.completed) && (
+            {habits.length > 0 && habits.every(habit => habit.status) && (
                 <p className="congrats-msg">CONGRATULATIONS! You've completed all of your daily habits!</p>
             )}
 

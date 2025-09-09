@@ -1,8 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from datetime import date
-
-db = SQLAlchemy()
+from datetime import datetime
+from extensions import db
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -13,12 +12,16 @@ class User(UserMixin, db.Model):
     habits = db.relationship('Habit', backref='user', lazy=True)
 
 class Habit(db.Model):
+    __tablename__ = 'habits'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    completed = db.Column(db.Boolean, default=False)
     category = db.Column(db.String(100), nullable=True)
+    status = db.Column(db.Boolean, default=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    logs= db.relationship('HabitLog', backref='habit', lazy=True)
+    date_created = db.Column(db.Date, nullable=False)
+    date_deleted = db.Column(db.Date, nullable=True)
+
+    logs= db.relationship('HabitLog', backref='habit', cascade='all, delete-orphan', passive_deletes=True)
 
 # ensure only one record per habit per date
 class HabitLog(db.Model):
@@ -29,4 +32,12 @@ class HabitLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False)
     status = db.Column(db.Boolean, default=True)
-    habit_id = db.Column(db.Integer, db.ForeignKey('habit.id'), nullable=False)
+    habit_id = db.Column(db.Integer, db.ForeignKey('habits.id', ondelete='CASCADE'), nullable=False)
+
+class HabitSnapshots(db.Model):
+    __tablename__ = 'habit_snapshots'
+    user_id = db.Column(db.String(100), nullable=False, primary_key=True)
+    snapshot_date = db.Column(db.Date, primary_key=True)
+    total_habits = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+
