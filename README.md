@@ -24,6 +24,11 @@ A full‑stack application to help users log, track, and mark completion of dail
 
 ---
 
+## Screenshots
+- Refer to /images folder for screenshots of the web app
+
+---
+
 ## Getting Started
 
 Follow these steps to run the application locally.
